@@ -57,3 +57,6 @@ pred <- predict(n1, test, type="class")
 n.acertos <- length(which(pred == real))
 p.acertos <- 100*n.acertos/length(real)
 
+#2 teste com rede neural (resultados entre 0 e 1) - 88.42533% de acertos
+n1 <- nnet(d2[,1]~.,data = d2, size = 10, rang = 0.5, decay = 0.02, maxit = 10000, MaxNWts = 2000)
+#3 teste com randomForest e as médias das linhas e colunas - 90.95177% de acertos
