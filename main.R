@@ -30,3 +30,30 @@ save(rf, file="data/rf.RData")
 pred <- predict(rf, test)
 
 p.acertos <- sum(pred == test$label)/length(pred)
+
+
+#Rede Neural
+#abertura e organização do arquivo
+data <- read.csv("train.csv")
+#o train possui 500 digitos para testes
+train <- data[1:500,]
+label <- train[,1]
+train <- train[,-1]
+rm <- line.mean(train)
+cm <- col.mean(train)
+data2 <- data.frame(label, cm, rm)
+#o test possui 15001 digitos
+test <- data[,501:2001]
+test <- data[501:2001,]
+#o real contem os valores corretos do test
+real <- test[,1]
+test <- test[,-1]
+#treinamento da rede
+n1 <- nnet(label~.,data = data2, size = 20, rang = 0.5, decay = 5e-4, maxit = 10000, MaxNWts = 2000)
+#teste
+pred <- predict(n1, test, type="class")
+#n.acertos - numero de acertos da rede
+#p.acertos - porcentagem de acertos da rede
+n.acertos <- length(which(pred == real))
+p.acertos <- 100*n.acertos/length(real)
+
