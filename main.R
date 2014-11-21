@@ -32,6 +32,14 @@ pred <- predict(rf, test)
 p.acertos <- sum(pred == test$label)/length(pred)
 
 
+
+#renomeia as colunas (label, c(1:18), r(1:18), q(1:18), ratio)
+#colnames(train.r) <- c("label", paste("c", 1:18, sep=''), paste("r", 1:18, sep=''), paste("q", 1:4, sep=''), "ratio")
+#colnames(test.r) <- c("label", paste("c", 1:18, sep=''), paste("r", 1:18, sep=''), paste("q", 1:4, sep=''), "ratio")
+
+
+
+
 #Rede Neural
 #abertura e organização do arquivo
 data <- read.csv("train.csv")
@@ -60,3 +68,12 @@ p.acertos <- 100*n.acertos/length(real)
 #2 teste com rede neural (resultados entre 0 e 1) - 88.42533% de acertos
 n1 <- nnet(d2[,1]~.,data = d2, size = 10, rang = 0.5, decay = 0.02, maxit = 10000, MaxNWts = 2000)
 #3 teste com randomForest e as médias das linhas e colunas - 90.95177% de acertos
+  #mesmo esquema realizado acima, contudo a randomForest foi treinada com as médias das linhas e colunas
+
+#4 teste com randomForest com o filtro sobel e como entrada a media das linhas e colunas, medias dos quadrosb e ratio (altura/largura) conseguiu 89.50949%
+  #Provavelmente ocorreu este resultado por causa do filtro sobel, que dilatou as linhas
+  #talvez o filtro de sobel não é muito util para imagens pequenas pq ele aumenta a image
+  #o proximo teste é realizar todos os passos sem o filtro sobel para comprovar a teoria
+#5 teste com randomForest sem o filtro sobel e como entrada a media das linhas e colunas, medias dos quadros e ratio (altura/largura) conseguiu 92.7641%,
+  #confirmando a teoria acima
+#6 teste com randomForest e dados com linhas e colunas removidas e redimensionado para 18x18 e média dos quadrantes conseguiu 96.80931%
