@@ -77,3 +77,90 @@ n1 <- nnet(d2[,1]~.,data = d2, size = 10, rang = 0.5, decay = 0.02, maxit = 1000
 #5 teste com randomForest sem o filtro sobel e como entrada a media das linhas e colunas, medias dos quadros e ratio (altura/largura) conseguiu 92.7641%,
   #confirmando a teoria acima
 #6 teste com randomForest e dados com linhas e colunas removidas e redimensionado para 18x18 e média dos quadrantes conseguiu 96.80931%
+
+
+#Pre-processamento
+#--Filtro gaussian
+test.gauss <- data.gauss(test)
+train.gauss <- data.gauss(train)
+#--Remoção de linhas e colunas em branco (0)
+test.rmblank <- data.rmblank(test.gauss)
+train.rmblank <- data.rmblank(train.gauss)
+#--Transformação em imagem binária
+test.threshold <- data.threshold(test.rmblank)
+train.threshold <- data.threshold(train.rmblank)
+
+#Caracteristicas
+#--Média das linhas e colunas
+test.crmean <- data.crmean(test.threshold)
+train.crmean <- data.crmean(train.threshold)
+#--Divide a imagem em 4 partes e tira a média e o desvio padrão de cada parte
+test.4mean <- data.4mean(test.threshold)
+train.4mean <- data.4mean(train.threshold)
+#--Agrupa de 4 em 4 e tira a media e o desvio padrão
+test.196mean <- data.196mean(test.threshold)
+train.196mean <- data.196mean(train.threshold)
+#--Area da imagem
+test.area <- data.area(test.threshold)
+train.area <- data.area(train.threshold)
+#--Perimetro
+test.peri <- data.peri(test.threshold)
+train.peri <- data.peri(train.threshold)
+#--Ratio
+test.ratio <- data.ratio(test)
+train.ratio <- data.ratio(train)
+
+test1 <- data.frame(test.196mean, test.4mean[,-1], test.crmean[,-1],  test.area[,-1],test.peri[,-1])
+train1 <- data.frame(train.196mean, train.4mean[,-1], train.crmean[,-1], train.area[,-1], train.peri[,-1])
+
+colnames(train1)[128] <- "peri"
+colnames(test1)[128] <- "peri"
+
+colnames(train1)[127] <- "area"
+colnames(test1)[127] <- "area"
+
+rf <- randomForest(label~., data=train1)
+pred <- predict(rf, test1)
+p.acertos <- sum(pred == test1$label)/length(pred)
+p.acertos * 100
+
+labels <- as.factor(train1[,1])
+train1.var <- train1[,-1]
+rf <- randomForest(train1.var, labels, xtest = test1[,-1], ntree = 1000)
+
+
+
+#94.93843
+
+#TESTES:96.40792
+
+test1 <- data.frame(test.196mean)
+train1 <- data.frame(train.196mean)
+
+test1 <- data.frame(test.4mean)
+train1 <- data.frame(train.4mean)
+
+test1 <- data.frame(test.crmean, test.196mean[,-1])
+train1 <- data.frame(train.crmean, train.196mean[,-1])
+
+test1 <- data.frame(test.crmean, test.196mean[,-1], test.peri[,-1])
+train1 <- data.frame(train.crmean, train.196mean[,-1], train.peri[,-1])
+
+colnames(train1)[119] <- "peri"
+colnames(test1)[119] <- "peri"
+
+test1 <- data.frame(test.crmean, test.196mean[,-1], test.area[,-1])
+train1 <- data.frame(train.crmean, train.196mean[,-1], train.area[,-1])
+
+colnames(train1)[119] <- "area"
+colnames(test1)[119] <- "area"
+
+#95.27179
+
+test1 <- data.frame(test.threshold, test.196mean[,-1])
+train1 <- data.frame(train.threshold, train.196mean[,-1])
+
+
+
+test1 <- data.frame(test.rmblank, test.196mean2[,-1])
+train1 <- data.frame(train.rmblank, train.196mean2[,-1])

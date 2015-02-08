@@ -1,4 +1,4 @@
-data.crmean <- function(data){
+data.crmean2 <- function(data){
   n <- sqrt(length(data[1,]))
   c <- matrix(ncol=n)
   r <- matrix(ncol=n)
@@ -21,6 +21,22 @@ data.crmean <- function(data){
   }
   d <- data.frame(label, c[-1,], r[-1,])
   return (d)
+}
+data.crmean <- function(data){
+  label <- data[,1]
+  data <- data[,-1]
+  data2 <- data.frame
+  data2 <- apply(data, 1, img.crmean)
+  return (data.frame(label, t(data2)))
+}
+img.crmean <- function(img){
+  #Transforma cada linha em uma matrz 18x18
+  q <- matrix(as.numeric(img), 18, 18)
+  #Calcula as medias das colunas de cada linha
+  c <- colMeans(q)
+  r <- rowMeans(q)
+  t <- data.frame(c, r)
+  return (t(t))
 }
 
 data.sobel <- function(data){
@@ -48,29 +64,29 @@ data.4mean <- function(data){
   #remove o label do dataset
   label <- data[,1]
   data <- data[,-1]
-  means <- matrix(ncol = 8)
-  n <- sqrt(length(data[1,]))
-  #varre os dados
-  for (z in c(1:nrow(data))){
-    #transforma a imagem numa matrix 28x28
-    q <- matrix(as.numeric(data[z,]), n, n)
-    #calcula a media de cada parte
-    q1 <- mean(as.numeric(q[1:n/2, 1:n/2]))
-    q2 <- mean(as.numeric(q[1:n/2, (n/2+1):n]))
-    q3 <- mean(as.numeric(q[(n/2+1):n, 1:n/2]))
-    q4 <- mean(as.numeric(q[(n/2+1):n, (n/2+1):n]))
-    
-    s1 <- sd(as.numeric(q[1:n/2, 1:n/2]))
-    s2 <- sd(as.numeric(q[1:n/2, (n/2+1):n]))
-    s3 <- sd(as.numeric(q[(n/2+1):n, 1:n/2]))
-    s4 <- sd(as.numeric(q[(n/2+1):n, (n/2+1):n])) 
-    
-    means <- rbind(means, c(q1, q2, q3, q4, s1, s2, s3, s4))
-  }
-  return(data.frame(label, means[-1,]))
+  data2 <- data.frame
+  data2 <- apply(data, 1, img.4mean)
+  return(data.frame(label, t(data2)))
+}
+img.4mean <- function(img){
+  n <- 18
+  q <- matrix(as.numeric(img), n, n)
+  #calcula a media de cada parte
+  q1 <- mean(as.numeric(q[1:n/2, 1:n/2]))
+  q2 <- mean(as.numeric(q[1:n/2, (n/2+1):n]))
+  q3 <- mean(as.numeric(q[(n/2+1):n, 1:n/2]))
+  q4 <- mean(as.numeric(q[(n/2+1):n, (n/2+1):n]))
+  
+  s1 <- sd(as.numeric(q[1:n/2, 1:n/2]))
+  s2 <- sd(as.numeric(q[1:n/2, (n/2+1):n]))
+  s3 <- sd(as.numeric(q[(n/2+1):n, 1:n/2]))
+  s4 <- sd(as.numeric(q[(n/2+1):n, (n/2+1):n])) 
+  
+  return (c(q1, q2, q3, q4, s1, s2, s3, s4))
+  
 }
 
-data.ratio <- function(data){
+data.ratio2 <- function(data){
   #Remove as linhas e colunas nulas e retira o ratio
   #remove o label do dataset
   label <- data[,1]
@@ -83,6 +99,23 @@ data.ratio <- function(data){
     print ( nrow(q)/ncol(q))
     ratio[z] <- as.numeric(nrow(q)/ncol(q))
   }
+  return (ratio)
+}
+
+data.ratio <- function(data){
+  #Remove as linhas e colunas nulas e retira o ratio
+  #remove o label do dataset
+  label <- data[,1]
+  data <- data[,-1]
+  data2 <- data.frame
+  data2 <- apply(data, 1, img.ratio)
+  return (data.frame(label, data2))
+}
+img.ratio <- function(img){
+  n <- 28
+  q <- matrix(as.numeric(img), n, n)
+  q <- q[-which(rowSums(q) == 0), -which(colSums(q) == 0)]
+  ratio <- as.numeric(nrow(q)/ncol(q))
   return (ratio)
 }
 
@@ -131,21 +164,25 @@ data.196mean <- function(data){
   #Remove o label
   label <- data[,1]
   data <- data[,-1]
-  n <- sqrt(length(data[1,]))
-  data2 <- matrix(ncol=(n/2)^2)
-  data3 <- matrix(0, ncol=n/2, nrow=n/2)
-  for (z in c(1:nrow(data))){
-    q <- matrix(as.numeric(data[z,]), n, n)
-    for (i in seq(1, n, by=2)){
-      for (j in seq(1, n, by=2)){
-        data3[i/2 + 0.5,j/2 + 0.5] <- mean(q[i,j], q[i+1, j], q[i, j=1], q[i+1, j+1])
-      }
-    }
-  data2 <- rbind(data2, as.numeric(data3))
-  }
-  return (data.frame(label, data2[-1,]))
+  data2 <- data.frame
+  data2 <- apply(data, 1, img.196mean)
+  data2 <- t(data2)
+ 
+  return (data.frame(label, data2))
 }
-
+img.196mean <- function(img){
+  n <- 28
+  q <- matrix(as.numeric(img), n, n)
+  r <- matrix(0, ncol=n/2, nrow=n/2)
+  for (i in seq(1, n, by=2)){
+    for (j in seq(1, n, by=2)){
+      r[i/2 + 0.5,j/2 + 0.5] <- mean(q[i,j], q[i+1, j], q[i, j=1], q[i+1, j+1])
+    }
+  }
+  return (r)
+  
+  
+}
 data.196mean2 <- function(data){
   #Não remove o label pq não tem
   n <- sqrt(length(data[1,]))
@@ -163,20 +200,6 @@ data.196mean2 <- function(data){
   return (data.frame(data2[-1,]))
 }
 
-data.gauss <- function(data){
-  n <- sqrt(length(data[1,]))
-  label <- data[,1]
-  data <- data[,-1]
-  for (z in c(1:nrow(data))){
-    #data[z,] <- sobel(data[z,])-
-    q <- matrix(as.numeric(data[z,]), n, n)
-    q <- gblur(q, sigma=1)
-    data[z,] <- as.numeric(q)
-  }
-  
-  return(data.frame(label, data))
-}
-
 data.median2 <- function(data){
   n <- sqrt(length(data[1,]))
   label <- data[,1]
@@ -190,19 +213,19 @@ data.median2 <- function(data){
   
   return(data.frame(label, data))
 }
-data.median <- function(data){
+data.gauss <- function(data){
   n <- sqrt(length(data[1,]))
   label <- data[,1]
   data <- data[,-1]
-  data <- apply(data, 1, img.median)
+  data <- apply(data, 1, img.gauss)
   data <- t(data)
   colnames(data) <- c(paste("pixel", 0:783, sep=''))
   return(data.frame(label, data))
 }
-img.median <- function(img){
-  q <- matrix(img/255, 28, 28)
-  q <- as.numeric(medianFilter(q, 2) * 255)
-  
+img.gauss <- function(img){
+  q <- matrix(as.numeric(img)/255, 28, 28)
+  q <- as.numeric(gblur(q, sigma=0.5) * 255)
+  q <- round(q)
   return(q)
 }
 
@@ -213,10 +236,11 @@ data.threshold <- function(data){
   data <- apply(data, 2, img.threshold)
   return(data.frame(label, data))
 }
-img.threshold <- function(data){
-  data[which(data<=200)] <- 0
-  data[which(data>200)] <- 255
-  return (data)
+img.threshold <- function(img){
+  #data[which(data<=100)] <- 0
+  #data[which(data>100)] <- 1
+  
+  return (img>otsu(img))
 }
 
 divisors <- function(x){
@@ -226,32 +250,47 @@ divisors <- function(x){
   y[ x%%y == 0 ]
 }
 
-data.peri.area <- function(data){
-  n <- sqrt(length(data[1,]))
+data.area <- function(data){
   label <- data[,1]
   data <- data[,-1]
-  data <- apply(data, 2, img.threshold2)
-  area <- c()
-  peri <- c()
-  for (z in c(1:nrow(data))){
-    q <- matrix(as.numeric(data[z,]), n, n)
-    q <- q[-which(rowSums(q) == 0), -which(colSums(q) == 0)]
-    area[z] <- length(which(q == 255))
-    
-  }
-  return (area)  
+  data2 <- data.frame
+  data2 <- apply(data, 1, img.area)
+  return (data.frame(label, data2))  
+}
+img.area <- function(img){
+  area <- length(which(img == 1))
+  return (area)
+}
+
+data.thin <- function(data){
+  label <- data[,1]
+  data <- data[,-1]
+  data2 <- data.frame
+  data2 <- apply(data, 1, img.thin)
+  return (data.frame(label, t(data2)))  
+}
+img.thin <- function(img){
+  q <- matrix(as.numeric(img), 18, 18)
+  q <- thinImage(q)
+  return (q)
+}
+
+data.peri <- function(data){
+  label <- data[,1]
+  data <- data[,-1]
+  data2 <- data.frame
+  data2 <- apply(data, 1, img.peri)
+  return (data.frame(label, data2))  
 }
 
 img.peri <- function(img){
-  n <- nrow(img)
-  img <- img[which()]
+  q <- matrix(as.numeric(img), 18, 18)
+  k <- matrix(c(0,1,0,1,1,1,0,1,0),3,3)
+  q <- q-erode(q,k)
+  peri <- length(which(q == 1))
+  return (peri)
 }
-
-
-
 #=======================-------------------------===========================
-
-
 
 absDiff <- function(matrix1,matrix2){
   r <- nrow(matrix1)
@@ -275,7 +314,6 @@ thinningIteration <- function(imageMatrix, iter){
   imageInput <- imageMatrix
   r <- nrow(imageInput) - 1
   c <- ncol(imageInput) - 1
-  print (r)
   for(i in 2:r)
   {
     for(j in 2:c)
@@ -326,4 +364,28 @@ thinImage <- function(imageMatrix){
   } 
   
   return(im)
+}
+
+
+#======================++++++++++++++======================+++++++++++++===========
+
+img.rolate <- function(img){
+  q <- matrix(as.numeric(img), 28, 28)
+  dim2 <- 0
+  angle <- 0
+  #_-----____________----______---___---____---___---__
+  #rmblank
+  q <- q[-which(rowSums(q) < 50), -which(colSums(q) < 50)]
+  #dimensão da img original
+  dim1 <- sum(dim(q))
+  while (TRUE){
+    
+    
+    
+  }
+  
+  
+  
+  
+  
 }
