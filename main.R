@@ -57,6 +57,8 @@ test <- data[501:2001,]
 real <- test[,1]
 test <- test[,-1]
 #treinamento da rede
+n1 <- nnet(label~.,data = tr, size = 20, rang = 0.5, decay = 5e-4, maxit = 10000, MaxNWts = 2000)
+pred <- predict(n1, test, type="class")
 n1 <- nnet(label~.,data = data2, size = 20, rang = 0.5, decay = 5e-4, maxit = 10000, MaxNWts = 2000)
 #teste
 pred <- predict(n1, test, type="class")
@@ -64,6 +66,12 @@ pred <- predict(n1, test, type="class")
 #p.acertos - porcentagem de acertos da rede
 n.acertos <- length(which(pred == real))
 p.acertos <- 100*n.acertos/length(real)
+
+n1 <- nnet(label~.,data = tr, size = 100, maxit = 10, MaxNWts = 54000)
+pred <- predict(n1, te[,-1], type="class")
+n.acertos <- length(which(pred == te[,1]))
+p.acertos <- 100*n.acertos/length(te[,1])
+p.acertos
 
 #2 teste com rede neural (resultados entre 0 e 1) - 88.42533% de acertos
 n1 <- nnet(d2[,1]~.,data = d2, size = 10, rang = 0.5, decay = 0.02, maxit = 10000, MaxNWts = 2000)
@@ -109,6 +117,9 @@ train.peri <- data.peri(train.threshold)
 #--Ratio
 test.ratio <- data.ratio(test)
 train.ratio <- data.ratio(train)
+#--Hough
+test.hough <- data.hough(test.threshold)
+train.hough <- data.hough(train.threshold)
 
 test1 <- data.frame(test.196mean, test.4mean[,-1], test.crmean[,-1],  test.area[,-1],test.peri[,-1])
 train1 <- data.frame(train.196mean, train.4mean[,-1], train.crmean[,-1], train.area[,-1], train.peri[,-1])
@@ -152,8 +163,8 @@ colnames(test1)[119] <- "peri"
 test1 <- data.frame(test.crmean, test.196mean[,-1], test.area[,-1])
 train1 <- data.frame(train.crmean, train.196mean[,-1], train.area[,-1])
 
-colnames(train1)[119] <- "area"
-colnames(test1)[119] <- "area"
+colnames(train1)[522] <- "area"
+colnames(test1)[522] <- "area"
 
 #95.27179
 
@@ -162,5 +173,93 @@ train1 <- data.frame(train.threshold, train.196mean[,-1])
 
 
 
-test1 <- data.frame(test.rmblank, test.196mean2[,-1])
-train1 <- data.frame(train.rmblank, train.196mean2[,-1])
+test1 <- data.frame(test.rmblank, test.196mean2[,-1], test.hough[,-1])
+train1 <- data.frame(train.rmblank, train.196mean2[,-1], train.hough[,-1])
+
+test1 <- data.frame(test.rmblank, test.196mean2[,-1], test.area[,-1])
+train1 <- data.frame(train.rmblank, train.196mean2[,-1], train.area[,-1])
+
+
+
+
+
+rf <- randomForest(label~., data=tr3)
+pred <- predict(rf, te3)
+p.acertos <- sum(pred == te3$label)/length(pred)
+p.acertos * 100
+
+
+
+s1 <- svm(label~., data=tr3, cost = 2, gamma = 0.01)
+pred <- predict(s1, te3, type = "class")
+p.acertos <- sum(pred == te3$label)/length(pred)
+p.acertos * 100
+
+colnames(tr) <- c("label", paste("c", 1:520, sep=''))
+colnames(te) <- c("label", paste("c", 1:520, sep=''))
+
+
+detach("package:EBImage", unload=TRUE)
+library("randomForest", lib.loc="~/R/i686-pc-linux-gnu-library/3.1")
+
+detach("package:randomForest", unload=TRUE)
+library("EBImage", lib.loc="~/R/i686-pc-linux-gnu-library/3.1")
+
+tr <- data.frame(tr3, tr4[,-1]/255)
+te <- data.frame(te3, te4[,-1]/255)
+
+tr1 <- data.gauss(tr)
+te1 <- data.gauss(te)
+
+tr2 <- data.threshold(tr1)
+te2 <- data.threshold(te1)
+
+tr3 <- data.thin(tr2)
+te3 <- data.thin(te2)
+
+tr4 <- data.hough(tr3)
+te4 <- data.hough(tr3)
+#Separar os numeros
+n1 <- tr4[,which(tr4[1,] == 1)]
+n2 <- tr4[,which(tr4[1,] == 2)]
+n3 <- tr4[,which(tr4[1,] == 3)]
+n4 <- tr4[,which(tr4[1,] == 4)]
+n5 <- tr4[,which(tr4[1,] == 5)]
+n6 <- tr4[,which(tr4[1,] == 6)]
+n7 <- tr4[,which(tr4[1,] == 7)]
+n8 <- tr4[,which(tr4[1,] == 8)]
+n9 <- tr4[,which(tr4[1,] == 9)]
+n0 <- tr4[,which(tr4[1,] == 0)]
+#maximo, minimo e media das retas de cada numero na transformata de hough
+#--Acha as retas com o valor maximo
+nmax1 <- apply(n1, 2, max)
+nmax2 <- apply(n2, 2, max)
+nmax3 <- apply(n3, 2, max)
+nmax4 <- apply(n4, 2, max)
+nmax5 <- apply(n5, 2, max)
+nmax0 <- apply(n0, 2, max)
+
+#--Max das retas
+max1 <- max(nmax1)
+max2 <- max(nmax2)
+max3 <- max(nmax3)
+max4 <- max(nmax4)
+max5 <- max(nmax5)
+max0 <- max(nmax0)
+#--Min das retas
+min1 <- min(nmax1)
+min2 <- min(nmax2)
+min3 <- min(nmax3)
+min4 <- min(nmax4)
+min5 <- min(nmax5)
+min0 <- min(nmax0)
+#--Mean das retas
+mean1 <- mean(as.numeric(nmax1))
+mean2 <- mean(nmax2)
+mean3 <- mean(nmax3)
+mean4 <- mean(nmax4)
+mean5 <- mean(nmax5)
+mean0 <- mean(nmax0)
+
+#tentar separar atrabés disso
+#calcular os circulos e elipses na transformata

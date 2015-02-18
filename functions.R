@@ -152,9 +152,9 @@ data.rmblank <- function(data){
 img.rmblank <- function(img){
   #n <- length(data[1,])
   #print (data)
-  q <- matrix(as.numeric(img), 28, 28)
+  q <- matrix(as.numeric(img), 14, 14)
   q <- q[-which(rowSums(q) < 50), -which(colSums(q) < 50)]
-  q <- resize(q, 18, 18)
+  q <- resize(q, 10, 10)
   q <- as.numeric(imageData(q))
   q <- round(q)
   return(q)
@@ -236,11 +236,12 @@ data.threshold <- function(data){
   data <- apply(data, 2, img.threshold)
   return(data.frame(label, data))
 }
-img.threshold <- function(img){
-  #data[which(data<=100)] <- 0
-  #data[which(data>100)] <- 1
+img.threshold <- function(data){
+  data[which(data<=110)] <- 0
+  data[which(data>110)] <- 1
   
-  return (img>otsu(img))
+  return (data)
+  #return (img>otsu(img))
 }
 
 divisors <- function(x){
@@ -270,7 +271,7 @@ data.thin <- function(data){
   return (data.frame(label, t(data2)))  
 }
 img.thin <- function(img){
-  q <- matrix(as.numeric(img), 18, 18)
+  q <- matrix(as.numeric(img), 28, 28)
   q <- thinImage(q)
   return (q)
 }
@@ -280,15 +281,28 @@ data.peri <- function(data){
   data <- data[,-1]
   data2 <- data.frame
   data2 <- apply(data, 1, img.peri)
-  return (data.frame(label, data2))  
+  return (data.frame(label, t(data2)))  
 }
-
 img.peri <- function(img){
   q <- matrix(as.numeric(img), 18, 18)
   k <- matrix(c(0,1,0,1,1,1,0,1,0),3,3)
   q <- q-erode(q,k)
-  peri <- length(which(q == 1))
-  return (peri)
+  return (q)
+  #peri <- length(which(q == 1))
+  #return (peri)
+}
+
+data.hough <- function(data){
+  label <- data[,1]
+  data <- data[,-1]
+  data2 <- data.frame
+  data2 <- apply(data, 1, img.hough)
+  return (data.frame(label, t(data2))  )
+}
+img.hough <- function(img){
+  q <- matrix(as.numeric(img), 18, 18)
+  #return (as.numeric(hough(q, ThetaSamples = 18)$hData))
+  return (hough(q, ThetaSamples = 18)$hData)
 }
 #=======================-------------------------===========================
 
@@ -388,4 +402,12 @@ img.rolate <- function(img){
   
   
   
+}
+
+
+
+img.h <- function(img){
+  a <- matrix(as.numeric(img), 18, 18)
+  b <- hough(a)
+  viewData(list(b$hData, a))
 }
